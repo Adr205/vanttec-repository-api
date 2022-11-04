@@ -4,7 +4,7 @@
   "description": "API para el dashboard de vanttec",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node dist/index.js"
   },
   "author": "Adrian Villa",
   "license": "MIT",
