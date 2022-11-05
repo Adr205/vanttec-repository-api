@@ -50,6 +50,7 @@ userRoutes.post("/register", (req: Request, res: Response) => {
   const secretKey = req.body.secretKey;
 
   if (secretKey !== process.env.SECRET_KEY) {
+    console.log("Secret key incorrect");
     return res.json({
       ok: false,
       message: "Invalid secret key",
