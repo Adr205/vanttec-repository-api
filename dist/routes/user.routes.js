@@ -23,36 +23,33 @@ const userRoutes = (0, express_1.Router)();
 userRoutes.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const body = req.body;
     const email = body.email.toLowerCase();
-    yield User_1.User.findOne({ email: email }, (err, userDB) => {
-        if (err)
-            throw err;
-        if (!userDB) {
-            return res.status(400).json({
-                ok: false,
-                message: "Email doesn't exist",
-            });
-        }
-        if (userDB.comparePassword(body.password)) {
-            const userToken = token_1.default.getJwtToken({
-                _id: userDB._id,
-                firstName: userDB.firstName,
-                lastName: userDB.lastName,
-                email: userDB.email,
-                savedRepositories: userDB.savedRepositories,
-                createdRepositories: userDB.createdRepositories,
-            });
-            return res.status(400).json({
-                ok: true,
-                token: userToken,
-            });
-        }
-        else {
-            return res.json({
-                ok: false,
-                message: "Email and/or Password incorrect",
-            });
-        }
-    });
+    const user = yield User_1.User.findOne({ email: email });
+    if (!user) {
+        return res.status(400).json({
+            ok: false,
+            message: "User/Password incorrect",
+        });
+    }
+    if (user.comparePassword(body.password)) {
+        const userToken = token_1.default.getJwtToken({
+            _id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            savedRepositories: user.savedRepositories,
+            createdRepositories: user.createdRepositories,
+        });
+        return res.status(200).json({
+            ok: true,
+            token: userToken,
+        });
+    }
+    else {
+        return res.status(400).json({
+            ok: false,
+            message: "User/Password incorrect",
+        });
+    }
 }));
 // Register user
 userRoutes.post("/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
