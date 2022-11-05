@@ -20,10 +20,10 @@ const authentication_1 = require("../middlewares/authentication");
 require("dotenv").config();
 const userRoutes = (0, express_1.Router)();
 // Login
-userRoutes.post("/login", (req, res) => {
+userRoutes.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const body = req.body;
     const email = body.email.toLowerCase();
-    User_1.User.findOne({ email: email }, (err, userDB) => {
+    yield User_1.User.findOne({ email: email }, (err, userDB) => {
         if (err)
             throw err;
         if (!userDB) {
@@ -53,7 +53,7 @@ userRoutes.post("/login", (req, res) => {
             });
         }
     });
-});
+}));
 // Register user
 userRoutes.post("/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const secretKey = req.body.secretKey;

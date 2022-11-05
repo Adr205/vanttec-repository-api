@@ -8,10 +8,10 @@ require("dotenv").config();
 const userRoutes = Router();
 
 // Login
-userRoutes.post("/login", (req: Request, res: Response) => {
+userRoutes.post("/login", async (req: Request, res: Response) => {
   const body = req.body;
   const email = body.email.toLowerCase();
-  User.findOne({ email: email }, (err: any, userDB) => {
+  await User.findOne({ email: email }, (err: any, userDB) => {
     if (err) throw err;
 
     if (!userDB) {
