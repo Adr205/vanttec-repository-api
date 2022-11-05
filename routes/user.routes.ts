@@ -11,37 +11,36 @@ const userRoutes = Router();
 userRoutes.post("/login", async (req: Request, res: Response) => {
   const body = req.body;
   const email = body.email.toLowerCase();
-  await User.findOne({ email: email }, (err: any, userDB) => {
-    if (err) throw err;
 
-    if (!userDB) {
-      return res.status(400).json({
-        ok: false,
-        message: "Email doesn't exist",
-      });
-    }
+  const user = await User.findOne({ email: email });
 
-    if (userDB.comparePassword(body.password)) {
-      const userToken = Token.getJwtToken({
-        _id: userDB._id,
-        firstName: userDB.firstName,
-        lastName: userDB.lastName,
-        email: userDB.email,
-        savedRepositories: userDB.savedRepositories,
-        createdRepositories: userDB.createdRepositories,
-      });
+  if (!user) {
+    return res.status(400).json({
+      ok: false,
+      message: "User/Password incorrect",
+    });
+  }
 
-      return res.status(400).json({
-        ok: true,
-        token: userToken,
-      });
-    } else {
-      return res.json({
-        ok: false,
-        message: "Email and/or Password incorrect",
-      });
-    }
-  });
+  if (user.comparePassword(body.password)) {
+    const userToken = Token.getJwtToken({
+      _id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      savedRepositories: user.savedRepositories,
+      createdRepositories: user.createdRepositories,
+    });
+
+    return res.status(200).json({
+      ok: true,
+      token: userToken,
+    });
+  } else {
+    return res.status(400).json({
+      ok: false,
+      message: "User/Password incorrect",
+    });
+  }
 });
 
 // Register user
@@ -53,7 +52,6 @@ userRoutes.post("/register", async (req: Request, res: Response) => {
   console.log(process.env.SECRET_KEY);
 
   if (secretKey !== process.env.SECRET_KEY) {
-
     console.log("Secret key incorrect", secretKey, process.env.SECRET_KEY);
     return res.status(400).json({
       ok: false,
@@ -68,7 +66,7 @@ userRoutes.post("/register", async (req: Request, res: Response) => {
     password: bcrypt.hashSync(req.body.password, 10),
   };
 
-  console.log(user);  
+  console.log(user);
 
   await User.create(user)
     .then((userDB) => {
@@ -101,28 +99,33 @@ userRoutes.put("/", verifyToken, async (req: any, res: Response) => {
     password: req.body.password || req.user.password,
   };
 
-  await User.findByIdAndUpdate(req.user._id, user, { new: true }, (err, userDB) => {
-    if (err) throw err;
+  await User.findByIdAndUpdate(
+    req.user._id,
+    user,
+    { new: true },
+    (err, userDB) => {
+      if (err) throw err;
 
-    if (!userDB) {
-      return res.status(400).json({
-        ok: false,
-        message: "User not found",
+      if (!userDB) {
+        return res.status(400).json({
+          ok: false,
+          message: "User not found",
+        });
+      }
+
+      const userToken = Token.getJwtToken({
+        _id: userDB._id,
+        firstName: userDB.firstName,
+        lastName: userDB.lastName,
+        email: userDB.email,
+      });
+
+      return res.json({
+        ok: true,
+        token: userToken,
       });
     }
-
-    const userToken = Token.getJwtToken({
-      _id: userDB._id,
-      firstName: userDB.firstName,
-      lastName: userDB.lastName,
-      email: userDB.email,
-    });
-
-    return res.json({
-      ok: true,
-      token: userToken,
-    });
-  });
+  );
 });
 
 //Get user
