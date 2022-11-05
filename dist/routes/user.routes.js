@@ -54,10 +54,7 @@ userRoutes.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, functi
 // Register user
 userRoutes.post("/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const secretKey = req.body.secretKey;
-    console.log(secretKey);
-    console.log(process.env.SECRET_KEY);
     if (secretKey !== process.env.SECRET_KEY) {
-        console.log("Secret key incorrect", secretKey, process.env.SECRET_KEY);
         return res.status(400).json({
             ok: false,
             message: "Invalid secret key",
@@ -69,26 +66,27 @@ userRoutes.post("/register", (req, res) => __awaiter(void 0, void 0, void 0, fun
         email: req.body.email.toLowerCase(),
         password: bcrypt_1.default.hashSync(req.body.password, 10),
     };
-    console.log(user);
-    yield User_1.User.create(user)
-        .then((userDB) => {
+    const userCreated = yield User_1.User.create(user);
+    if (userCreated) {
         const userToken = token_1.default.getJwtToken({
-            _id: userDB._id,
-            firstName: userDB.firstName,
-            lastName: userDB.lastName,
-            email: userDB.email,
+            _id: userCreated._id,
+            firstName: userCreated.firstName,
+            lastName: userCreated.lastName,
+            email: userCreated.email,
+            savedRepositories: userCreated.savedRepositories,
+            createdRepositories: userCreated.createdRepositories,
         });
-        return res.json({
+        return res.status(200).json({
             ok: true,
             token: userToken,
         });
-    })
-        .catch((err) => {
+    }
+    else {
         return res.status(400).json({
             ok: false,
-            err,
+            message: "Error creating user",
         });
-    });
+    }
 }));
 // Update user
 userRoutes.put("/", authentication_1.verifyToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
