@@ -31,7 +31,7 @@ userRoutes.post("/login", (req: Request, res: Response) => {
         createdRepositories: userDB.createdRepositories,
       });
 
-      res.status(400).json({
+      return res.status(400).json({
         ok: true,
         token: userToken,
       });
@@ -49,7 +49,9 @@ userRoutes.post("/login", (req: Request, res: Response) => {
 userRoutes.post("/register", async (req: Request, res: Response) => {
   const secretKey = req.body.secretKey;
 
-  console.log("Secret key incorrect", secretKey, process.env.SECRET_KEY);
+  console.log(secretKey);
+  console.log(process.env.SECRET_KEY);
+
   if (secretKey !== process.env.SECRET_KEY) {
 
     console.log("Secret key incorrect", secretKey, process.env.SECRET_KEY);
@@ -66,7 +68,7 @@ userRoutes.post("/register", async (req: Request, res: Response) => {
     password: bcrypt.hashSync(req.body.password, 10),
   };
 
-  
+  console.log(user);  
 
   await User.create(user)
     .then((userDB) => {
@@ -77,13 +79,13 @@ userRoutes.post("/register", async (req: Request, res: Response) => {
         email: userDB.email,
       });
 
-      res.json({
+      return res.json({
         ok: true,
         token: userToken,
       });
     })
     .catch((err) => {
-      res.status(400).json({
+      return res.status(400).json({
         ok: false,
         err,
       });
@@ -116,7 +118,7 @@ userRoutes.put("/", verifyToken, async (req: any, res: Response) => {
       email: userDB.email,
     });
 
-    res.json({
+    return res.json({
       ok: true,
       token: userToken,
     });
@@ -128,7 +130,7 @@ userRoutes.put("/", verifyToken, async (req: any, res: Response) => {
 userRoutes.get("/", [verifyToken], (req: any, res: Response) => {
   const user = req.user;
 
-  res.json({
+  return res.json({
     ok: true,
     user,
   });
@@ -149,7 +151,7 @@ userRoutes.delete("/", [verifyToken], async (req: any, res: Response) => {
       });
     }
 
-    res.json({
+    return res.json({
       ok: true,
       message: "User deleted",
     });

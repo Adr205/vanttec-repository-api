@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -18,7 +27,7 @@ userRoutes.post("/login", (req, res) => {
         if (err)
             throw err;
         if (!userDB) {
-            return res.json({
+            return res.status(400).json({
                 ok: false,
                 message: "Email doesn't exist",
             });
@@ -32,7 +41,7 @@ userRoutes.post("/login", (req, res) => {
                 savedRepositories: userDB.savedRepositories,
                 createdRepositories: userDB.createdRepositories,
             });
-            res.json({
+            return res.status(400).json({
                 ok: true,
                 token: userToken,
             });
@@ -46,11 +55,13 @@ userRoutes.post("/login", (req, res) => {
     });
 });
 // Register user
-userRoutes.post("/register", (req, res) => {
+userRoutes.post("/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const secretKey = req.body.secretKey;
+    console.log(secretKey);
+    console.log(process.env.SECRET_KEY);
     if (secretKey !== process.env.SECRET_KEY) {
-        console.log("Secret key incorrect");
-        return res.json({
+        console.log("Secret key incorrect", secretKey, process.env.SECRET_KEY);
+        return res.status(400).json({
             ok: false,
             message: "Invalid secret key",
         });
@@ -61,7 +72,8 @@ userRoutes.post("/register", (req, res) => {
         email: req.body.email.toLowerCase(),
         password: bcrypt_1.default.hashSync(req.body.password, 10),
     };
-    User_1.User.create(user)
+    console.log(user);
+    yield User_1.User.create(user)
         .then((userDB) => {
         const userToken = token_1.default.getJwtToken({
             _id: userDB._id,
@@ -69,31 +81,31 @@ userRoutes.post("/register", (req, res) => {
             lastName: userDB.lastName,
             email: userDB.email,
         });
-        res.json({
+        return res.json({
             ok: true,
             token: userToken,
         });
     })
         .catch((err) => {
-        res.json({
+        return res.status(400).json({
             ok: false,
             err,
         });
     });
-});
+}));
 // Update user
-userRoutes.put("/", authentication_1.verifyToken, (req, res) => {
+userRoutes.put("/", authentication_1.verifyToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = {
         firstName: req.body.firstName || req.user.firstName,
         lastName: req.body.lastName || req.user.lastName,
         email: req.body.email || req.user.email,
         password: req.body.password || req.user.password,
     };
-    User_1.User.findByIdAndUpdate(req.user._id, user, { new: true }, (err, userDB) => {
+    yield User_1.User.findByIdAndUpdate(req.user._id, user, { new: true }, (err, userDB) => {
         if (err)
             throw err;
         if (!userDB) {
-            return res.json({
+            return res.status(400).json({
                 ok: false,
                 message: "User not found",
             });
@@ -104,36 +116,36 @@ userRoutes.put("/", authentication_1.verifyToken, (req, res) => {
             lastName: userDB.lastName,
             email: userDB.email,
         });
-        res.json({
+        return res.json({
             ok: true,
             token: userToken,
         });
     });
-});
+}));
 //Get user
 userRoutes.get("/", [authentication_1.verifyToken], (req, res) => {
     const user = req.user;
-    res.json({
+    return res.json({
         ok: true,
         user,
     });
 });
 //delete user
-userRoutes.delete("/", [authentication_1.verifyToken], (req, res) => {
+userRoutes.delete("/", [authentication_1.verifyToken], (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.user._id;
-    User_1.User.findByIdAndDelete(id, (err, userDeleted) => {
+    yield User_1.User.findByIdAndDelete(id, (err, userDeleted) => {
         if (err)
             throw err;
         if (!userDeleted) {
-            return res.json({
+            return res.status(400).json({
                 ok: false,
                 message: "User not found",
             });
         }
-        res.json({
+        return res.json({
             ok: true,
             message: "User deleted",
         });
     });
-});
+}));
 exports.default = userRoutes;
