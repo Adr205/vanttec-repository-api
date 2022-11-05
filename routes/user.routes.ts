@@ -15,7 +15,7 @@ userRoutes.post("/login", (req: Request, res: Response) => {
     if (err) throw err;
 
     if (!userDB) {
-      return res.json({
+      return res.status(400).json({
         ok: false,
         message: "Email doesn't exist",
       });
@@ -31,7 +31,7 @@ userRoutes.post("/login", (req: Request, res: Response) => {
         createdRepositories: userDB.createdRepositories,
       });
 
-      res.json({
+      res.status(400).json({
         ok: true,
         token: userToken,
       });
@@ -46,13 +46,14 @@ userRoutes.post("/login", (req: Request, res: Response) => {
 
 // Register user
 
-userRoutes.post("/register", (req: Request, res: Response) => {
+userRoutes.post("/register", async (req: Request, res: Response) => {
   const secretKey = req.body.secretKey;
 
+  console.log("Secret key incorrect", secretKey, process.env.SECRET_KEY);
   if (secretKey !== process.env.SECRET_KEY) {
 
     console.log("Secret key incorrect", secretKey, process.env.SECRET_KEY);
-    return res.json({
+    return res.status(400).json({
       ok: false,
       message: "Invalid secret key",
     });
@@ -67,7 +68,7 @@ userRoutes.post("/register", (req: Request, res: Response) => {
 
   
 
-  User.create(user)
+  await User.create(user)
     .then((userDB) => {
       const userToken = Token.getJwtToken({
         _id: userDB._id,
@@ -82,7 +83,7 @@ userRoutes.post("/register", (req: Request, res: Response) => {
       });
     })
     .catch((err) => {
-      res.json({
+      res.status(400).json({
         ok: false,
         err,
       });
@@ -90,7 +91,7 @@ userRoutes.post("/register", (req: Request, res: Response) => {
 });
 
 // Update user
-userRoutes.put("/", verifyToken, (req: any, res: Response) => {
+userRoutes.put("/", verifyToken, async (req: any, res: Response) => {
   const user = {
     firstName: req.body.firstName || req.user.firstName,
     lastName: req.body.lastName || req.user.lastName,
@@ -98,11 +99,11 @@ userRoutes.put("/", verifyToken, (req: any, res: Response) => {
     password: req.body.password || req.user.password,
   };
 
-  User.findByIdAndUpdate(req.user._id, user, { new: true }, (err, userDB) => {
+  await User.findByIdAndUpdate(req.user._id, user, { new: true }, (err, userDB) => {
     if (err) throw err;
 
     if (!userDB) {
-      return res.json({
+      return res.status(400).json({
         ok: false,
         message: "User not found",
       });
@@ -135,14 +136,14 @@ userRoutes.get("/", [verifyToken], (req: any, res: Response) => {
 
 //delete user
 
-userRoutes.delete("/", [verifyToken], (req: any, res: Response) => {
+userRoutes.delete("/", [verifyToken], async (req: any, res: Response) => {
   const id = req.user._id;
 
-  User.findByIdAndDelete(id, (err: any, userDeleted) => {
+  await User.findByIdAndDelete(id, (err: any, userDeleted) => {
     if (err) throw err;
 
     if (!userDeleted) {
-      return res.json({
+      return res.status(400).json({
         ok: false,
         message: "User not found",
       });
